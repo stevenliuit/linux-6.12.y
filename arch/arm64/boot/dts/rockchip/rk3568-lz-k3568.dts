@@ -19,7 +19,8 @@
 		ethernet0 = &gmac0;
 		ethernet1 = &gmac1;
 		mmc0 = &sdmmc0;
-		mmc1 = &sdhci;
+		mmc1 = &sdmmc1;
+		mmc2 = &sdhci;
 	};
 
 	chosen: chosen {
@@ -30,7 +31,7 @@
 		compatible = "gpio-leds";
 
 		led_work: led-0 {
-			gpios = <&gpio3 RK_PC6 GPIO_ACTIVE_HIGH>; // bsp
+			gpios = <&gpio3 RK_PC6 GPIO_ACTIVE_HIGH>;
 			function = LED_FUNCTION_HEARTBEAT;
 			color = <LED_COLOR_ID_BLUE>;
 			linux,default-trigger = "heartbeat";
@@ -159,15 +160,13 @@
 		regulator-name = "vcc_power_hold";
 		vin-supply = <&dc_12v>;
 	};
-/*
 	sdio_pwrseq: sdio-pwrseq {
 		compatible = "mmc-pwrseq-simple";
 		pinctrl-names = "default";
 		pinctrl-0 = <&wifi_enable_h>;
-		reset-gpios = <&gpio2 RK_PB1 GPIO_ACTIVE_LOW>;  // bsp
+		reset-gpios = <&gpio2 RK_PB1 GPIO_ACTIVE_LOW>;
 		post-power-on-delay-ms = <200>;
 	};
-*/
 };
 
 &combphy0 {
@@ -566,7 +565,7 @@
 
 	leds {
 		led_work_en: led_work_en {
-			rockchip,pins = <3 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>; // bsp
+			rockchip,pins = <3 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
@@ -600,6 +599,15 @@
 	sdio-pwrseq {
 		wifi_enable_h: wifi-enable-h {
 			rockchip,pins = <2 RK_PB1 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	pcie {
+		mpcie_pwr_en: mpcie-pwr-en {
+			rockchip,pins = <4 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+		mpcie_rst_l: mpcie-rst-l {
+			rockchip,pins = <4 RK_PC3 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 };
@@ -656,6 +664,19 @@
 	status = "okay";
 };
 
+&sdmmc1 {
+	bus-width = <4>;
+	cap-sdio-irq;
+	cap-sd-highspeed;
+	non-removable;
+	mmc-pwrseq = <&sdio_pwrseq>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&sdmmc1_bus4 &sdmmc1_clk &sdmmc1_cmd>;
+	vmmc-supply = <&vcc3v3_pmu>;
+	vqmmc-supply = <&vcc_1v8>;
+	status = "okay";
+};
+
 &tsadc {
 	rockchip,hw-tshut-mode = <1>;
 	rockchip,hw-tshut-polarity = <0>;
@@ -698,11 +719,33 @@
 	status = "disabled";
 };
 
+/* SATA */
 &sata0 {
+	phys = <&combphy0 PHY_TYPE_SATA>;
+	phy-names = "sata-phy";
 	status = "okay";
 };
 
 &sata1 {
+	phys = <&combphy1 PHY_TYPE_SATA>;
+	phy-names = "sata-phy";
+	status = "okay";
+};
+
+/* PCIe */
+&pcie2x1 {
+	status = "disabled";
+};
+
+&pcie3x1 {
+	status = "disabled";
+};
+
+&pcie3x2 {
+	status = "disabled";
+};
+
+&pcie30phy {
 	status = "okay";
 };
 
